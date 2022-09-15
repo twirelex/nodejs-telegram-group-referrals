@@ -2,6 +2,7 @@ require('dotenv').config()
 const fs = require('fs')
 const input = require('input')
 const { Telegraf } = require("telegraf");
+const converter = require('json-2-csv');
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new Telegraf(process.env.botToken)
@@ -178,11 +179,13 @@ const session = new StringSession(""); // You should put your string session her
 
         if (!data_ids.includes(data.idss)) {
           dataFile.push(data);
-          fs.writeFile(
-            path.join(__dirname, "dataFile.json"),
-            JSON.stringify(dataFile),
-            (err) => console.log(err)
-          );
+          converter.json2csv(dataFile, (err, csv) => {
+            fs.writeFile(
+              path.join(__dirname, "dataFile.csv"),
+              csv,
+              (err) => console.log(err)
+            )
+          });
           data_ids.push(data.idss);
         }
         
@@ -195,14 +198,20 @@ const session = new StringSession(""); // You should put your string session her
 
         dataFile[i].invites = id_to_refcount[id]
       }
-      fs.writeFile(path.join(__dirname, 'dataFile.json'),JSON.stringify(dataFile), (err) => console.log(err))
+      converter.json2csv(dataFile, (err, csv) => {
+        fs.writeFile(
+          path.join(__dirname, "dataFile.csv"),
+          csv,
+          (err) => console.log(err)
+        )
+      });
 
     }, 2000);
 
     setTimeout(() => {
       ctx.telegram.sendDocument(
         ctx.chat.id,{
-          source: './dataFile.json'
+          source: './dataFile.csv'
         }
       )
     }, 4000);
